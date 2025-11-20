@@ -313,14 +313,25 @@
   }
 </style></div>
 <script>
-let scrollSpeed = 1.5; // px mỗi lần cuộn
-let scrollInterval = 20; // ms giữa mỗi lần cuộn
+let scrollSpeed = 1; // px mỗi lần cuộn (giảm từ 1.5)
+let scrollInterval = 50; // ms giữa mỗi lần cuộn
 let scrollTimer;
+let maxScrollDistance = 50; // Giới hạn chỉ cuộn tối đa 50px
+let initialScrollY = 0;
 
 // Hàm cuộn mượt
 function smoothScroll() {
+    let currentScrollY = window.scrollY;
+    let scrolledDistance = currentScrollY - initialScrollY;
+    
+    // Dừng khi đã cuộn đủ hoặc đến cuối trang
+    if (scrolledDistance >= maxScrollDistance) {
+        clearInterval(scrollTimer);
+        return;
+    }
+    
     let maxScroll = document.body.scrollHeight - window.innerHeight;
-    if (window.scrollY < maxScroll) {
+    if (currentScrollY < maxScroll) {
         window.scrollBy(0, scrollSpeed);
     } else {
         clearInterval(scrollTimer);
@@ -329,6 +340,7 @@ function smoothScroll() {
 
 // Bắt đầu cuộn
 function startAutoScroll() {
+    initialScrollY = window.scrollY || 0;
     scrollTimer = setInterval(smoothScroll, scrollInterval);
 }
 
@@ -567,6 +579,71 @@ document.addEventListener('DOMContentLoaded', function() {
     if(document.visibilityState==='hidden'){ if(timer) { clearInterval(timer); timer=null; } }
     else { if(!timer){ showNext(); start(); } }
   });
+})();
+</script>
+<script>
+(function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const guestId = urlParams.get('id');
+  
+  if (!guestId) {
+    return;
+  }
+  
+  const apiUrl = `https://wedding.chieumu1999.workers.dev/guestname/${guestId}`;
+  
+  function updateGuestName(name) {
+    if (!name || typeof name !== 'string' || name.trim() === '') {
+      return;
+    }
+    
+    const headline67 = document.getElementById('HEADLINE67');
+    if (headline67) {
+      const headlineElement = headline67.querySelector('.ladi-headline');
+      if (headlineElement) {
+        headlineElement.textContent = name + '\n';
+      }
+    }
+    
+    const form6 = document.getElementById('FORM6');
+    if (form6) {
+      const form6Element = form6.querySelector('.ladi-headline');
+      if (form6Element) {
+        form6Element.textContent = name;
+      }
+    }
+    
+    const form7 = document.getElementById('FORM7');
+    if (form7) {
+      const form7Element = form7.querySelector('.ladi-headline');
+      if (form7Element) {
+        form7Element.textContent = name;
+      }
+    }
+  }
+  
+  fetch(apiUrl, {
+    method: 'GET',
+    mode: 'cors',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('API response not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      const guestName = data?.name || data?.guest_name || (typeof data === 'string' ? data : null);
+      if (guestName) {
+        updateGuestName(guestName);
+      }
+    })
+    .catch(error => {
+      console.log('Failed to fetch guest name:', error);
+    });
 })();
 </script>
 <link rel="stylesheet" href="style.css">
